@@ -1710,13 +1710,13 @@ class BatchTable(object):
         while len(self._unprocessed):
             # Again, do 25 at a time.
             to_resend = self._unprocessed[:25]
-            # Remove them from the list.
-            self._unprocessed = self._unprocessed[25:]
             batch_data = {
                 self.table.table_name: to_resend
             }
             boto.log.info("Sending %s items" % len(to_resend))
             resp = self.table.connection.batch_write_item(batch_data)
+            # Remove them from the list, only when the call is success, so that retry is an option
+            self._unprocessed = self._unprocessed[25:]
             self.handle_unprocessed(resp)
             boto.log.info(
                 "%s unprocessed items left" % len(self._unprocessed)
